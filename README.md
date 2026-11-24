@@ -1,102 +1,74 @@
 # Contact Builder
 
-A browser-based tool for searching, filtering and exporting contacts from your own spreadsheet.
+Search, filter and export contacts from your own spreadsheet. Column headings and filter options come from your file, with no fixed contact template required.
 
-Upload an Excel or CSV file, narrow down the results using dropdown filters and keyword search, then copy your shortlist into Excel or download it as a CSV or Excel file.
+## Capacity
 
-## Works with your spreadsheet
+This version supports **up to 100,000 non-empty contact rows in total across selected worksheets**, with a maximum uploaded file size of **100 MB**. It was tested with a generated 100,000-contact, two-tab Excel workbook. Very wide spreadsheets and devices with less available memory may take longer or fail to open; these figures are limits, not a performance guarantee for every device.
 
-There is no fixed contact template or required set of column names. The app reads the column headings in your uploaded file and uses them as the available search fields and filter labels.
+Reading, combining, filtering, dropdown option generation, sorting and export generation run in a background worker. The page displays 100 rows at a time. Copy and downloads include all matching contacts, not just the visible page.
 
-Dropdown options are generated from the values in your spreadsheet. Under **Choose filter columns**, you can select which columns appear as dropdown filters. The app suggests some columns to start with, and you can change those selections to suit your file.
+## Importing a spreadsheet
 
-## Features
+1. Drag in an `.xlsx`, `.xls`, `.csv` or `.tsv` file, or use **Choose spreadsheet**.
+2. Choose one, several or all worksheets. Visible tabs are selected initially; hidden tabs are available but initially unchecked. Set the header row for each tab if its headings are not in row 1.
+3. Select **Review columns**.
+4. Review the output headings. Identical headings are combined automatically, ignoring case and surrounding spaces. For equivalent headings with different names, change them to the same name. For example, change **Email Address** to **Email** to combine those fields.
+5. Additional columns are retained. Contacts from tabs without those columns have blank values there. Two columns within the same tab must have different output headings.
+6. Select **Import selected tabs**. A **Source sheet** column identifies where each contact came from. If that heading already exists, the generated source column receives a distinct name.
 
-- Drag-and-drop or file-picker upload for `.xlsx`, `.xls`, `.csv` and `.tsv` files.
-- Worksheet selection for Excel files containing multiple sheets.
-- Adjustable header row if column headings are not on the first row.
-- Search across all columns or within a chosen column.
-- Searchable dropdown filters with multiple selections.
-- Connected filters, with options and counts updated according to the other filters and search terms.
-- Support for cells containing multiple values separated by semicolons, commas or pipes.
-- Sortable results table with pagination.
-- Choose and reorder the columns shown in results and included in exports.
-- Copy results with headings for pasting into Excel.
-- Download results as CSV or Excel.
-- Clear the current file and start again.
+Each selected tab must contain a table with one contact per row. Blank data rows are omitted. Matching contacts across tabs are not automatically deduplicated. Imports exceeding 100,000 contacts are refused with a message, never silently truncated.
 
-## Getting started
+To change the selected tabs or their headings after import, clear the file and upload it again. The original workbook is released from memory after import to reduce memory use.
 
-1. Open the app and choose a spreadsheet, or drag one into the upload area.
-2. Select the worksheet you want to use, if applicable.
-3. Check that the correct row is being used for column headings. Change **Header row** and click **Apply header** if needed.
-4. Open **Choose filter columns** and select the columns you want to filter by.
-5. Open a dropdown and tick one or more values. Use the search box inside the dropdown to find an option quickly.
-6. Add keywords in **Search contacts** to narrow the results further. Use **Search in** to restrict the search to one column.
-7. Open **Output columns & order** to choose and arrange the columns you need.
-8. Copy your results or download them as CSV or Excel.
+## Filters and keyword search
 
-You can also select **Try sample contacts** to explore the app using fictional data.
+- Open **Choose filter columns** and tick any columns you want as dropdowns. The app suggests up to six familiar filter columns initially, or the first three if none are recognised.
+- Open a dropdown and tick one or more values. Use its search box to find values in long lists.
+- Selections within one dropdown match **any** selected value. Different dropdowns must **all** match.
+- Options and counts reflect the other active dropdowns and keyword search. Selected values remain available even when their count is zero.
+- Dropdowns show up to 250 matching options at a time. Type to locate other options.
+- Use **Search contacts** across all columns or choose a single column under **Search in**. Searches are case-insensitive, with all entered words required within the selected scope.
+- Use **Reset** to clear dropdown selections and keyword search.
 
-## How filtering and searching work
+For cells with several values, select the separator under **Multiple values in a cell**. The default is a semicolon, for example `Value A; Value B`. Pipes and commas are also supported, or choose **Keep each cell as one value**. Changing the separator clears dropdown selections. The original cell text stays unchanged in the results and exports.
 
-Multiple selections within one dropdown match **any** of those values. Selections across different dropdowns must **all** match.
+Filter connections are inferred from values occurring together in rows. Where several categories and sub-categories share one cell or row, the app cannot infer more specific relationships that are not represented in the spreadsheet.
 
-Keyword search works alongside the dropdown filters. If you enter several words, all of them must appear within the selected search scope. Matching is case-insensitive.
+## Results and export
 
-Dropdown options come from your uploaded data and reflect the other active filters and keyword search. A selected option remains available to deselect even if its matching count drops to zero.
-
-Use **Reset** to clear the dropdown selections and keyword search.
-
-### Cells containing several values
-
-If a cell contains more than one value, choose the appropriate setting under **Multiple values in a cell**:
-
-- Semicolons: `Value A; Value B`
-- Pipes: `Value A | Value B`
-- Commas: `Value A, Value B`
-- **Keep each cell as one value** when values should not be split.
-
-Semicolons are the default. Only select commas if they separate distinct values, rather than forming part of a single value. Changing this setting clears dropdown selections.
-
-The original cell text is retained in the results and exports. Connections between filters are based on values occurring together in spreadsheet rows.
-
-## Copying and downloading
-
-**Copy for Excel** copies the selected columns, with headings, as tab-separated text. Paste into cell A1, or another starting cell, in Excel. Line breaks and tabs inside individual cells are replaced with spaces to keep the columns aligned.
-
-**CSV** and **Excel** export all matching contacts using your chosen columns and sorting. Exports include results across every page, not just the rows currently visible.
-
-The app exports a new table of values. It does not preserve the original workbook's formulas, formatting, macros or layout. Excel exports use text cells. CSV and clipboard output prefix potentially formula-like values with an apostrophe for spreadsheet safety, which may affect how some phone numbers or negative values appear.
+- Click a table heading to sort.
+- Under **Output columns & order**, select and arrange the columns you need.
+- **Copy for Excel** copies matching contacts with headings as tab-separated text. Paste into a starting cell in Excel. Line breaks and tabs within cells become spaces to preserve column alignment. If clipboard access is unavailable, a TSV file is downloaded instead.
+- **CSV** and **Excel** download all matching rows, across every page, in the selected column and sort order. Generation occurs in the background; large Excel exports may take time.
+- The exported file is a flat table of values. Original formulas, styles, macros, merged cells and workbook layouts are not retained. Stored formula results are read without recalculating formulas. Dates and other values use their displayed text where available.
+- Excel exports write text cells to preserve text identifiers and avoid executing formulas. CSV and copied values beginning with formula-like characters (`=`, `+`, `-`, `@`, including after whitespace) are prefixed with an apostrophe. This can affect how phone numbers or negative values appear.
 
 ## Privacy
 
-Contact data is processed locally in your browser tab. The app does not upload your spreadsheet to a server or save contacts in a database or browser storage.
+Contacts stay in the browser tab and its background worker. The app has no contact upload endpoint, analytics, database, cookies or browser storage. The spreadsheet library is bundled locally rather than loaded from an external CDN.
 
-Use **Clear file**, refresh the page or close the tab to clear the app's session. Copies placed on your clipboard and downloaded files remain wherever you keep them.
+**Clear file**, refreshing or closing the page clears the session. Clipboard copies and downloaded files remain wherever you save or paste them. The original spreadsheet is not modified. The website host still serves the app files under its normal hosting practices.
 
-No account or API key is required. The spreadsheet-reading library is included with the app, so it does not need to be loaded from an external CDN during use.
+Do not upload private spreadsheets to the GitHub repository. Upload them only through the running app.
 
-## File preparation and limits
+## GitHub Pages
 
-For best results, use a clear heading for each column and one contact per row. Blank data rows are omitted. Empty headings receive a generated column name, and duplicate headings receive numbered suffixes.
+Keep these items at the repository root:
 
-The app is designed for spreadsheets with around 30,000 contacts. Performance depends on file size, column count and the device being used. Files over 100 MB are not accepted. Long dropdown lists show up to 250 matching options at a time; use the dropdown's search box to narrow them down.
-
-## Hosting
-
-The app can be hosted as a static website, including on GitHub Pages. Keep these files together, with `index.html` at the website root:
-
-- `index.html`
-- `style.css`
+- `index.html` (lowercase)
 - `app.js`
 - `core.js`
 - `worker.js`
-- `vendor/`, including its contents
+- `style.css`
+- `vendor/`, with all its contents
 - `THIRD-PARTY-NOTICES.md`
+- `README.md` (this guide, optional for running the app)
 
-Load contact spreadsheets through the running app. Do not add private contact files to the website repository.
+In GitHub **Settings → Pages**, deploy from the `main` branch and `/(root)`. Open the Pages URL after deployment completes. No build step, API key or account in the app is required.
+
+If the app cannot start its background reader, check that `worker.js`, `core.js` and `vendor/xlsx.full.min.js` are present. Use the hosted HTTP/HTTPS page rather than double-clicking the HTML file locally.
 
 ## Third-party software
 
-Contact Desk includes SheetJS Community Edition for reading and writing spreadsheets. Its licence is included in `vendor/LICENSE.txt`, with attribution in `THIRD-PARTY-NOTICES.md`. Retain those files when hosting or distributing the app.
+The app bundles SheetJS Community Edition 0.20.3 for spreadsheet reading and writing. Retain `vendor/LICENSE.txt` and `THIRD-PARTY-NOTICES.md` when hosting or distributing the app.
